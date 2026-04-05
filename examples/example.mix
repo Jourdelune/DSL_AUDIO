@@ -1,0 +1,36 @@
+# example.mix — DSL Audio Podcast Mixer
+#
+# Syntax:
+#   TIMESTAMP  TRACK_NAME  FILEPATH  [OPTIONS...]  [# comment]
+#
+# TIMESTAMP formats: SS, SS.mmm, MM:SS, MM:SS.mmm, HH:MM:SS.mmm
+#
+# OPTIONS:
+#   vol=0.8           volume multiplier (0.0 – 2.0, default 1.0)
+#   fade_in=2s        fade-in duration  (also: 500ms)
+#   fade_out=3s       fade-out duration
+#   trim_start=5s     skip the first N seconds of the clip
+#   trim_end=10s      cut the last N seconds of the clip
+#   end=01:30.000     force-stop this clip at an absolute timeline position
+#
+# Lines starting with # are comments. Blank lines are ignored.
+# Multiple events at the same timestamp play simultaneously (overlay).
+
+# ── Intro sequence ──────────────────────────────────────────────
+00:00.000  jingle      ./audio/jingle.mp3       vol=0.9  fade_out=2s
+00:00.000  music       ./audio/background.mp3   vol=0.25 fade_in=3s
+
+# ── Host opens ──────────────────────────────────────────────────
+00:08.000  host        ./audio/host_intro.mp3   vol=1.0
+00:08.000  music       ./audio/background.mp3   vol=0.12 fade_in=1s  # duck music under voice
+
+# ── Guest interview ─────────────────────────────────────────────
+01:30.000  guest       ./audio/guest.mp3        vol=1.0  fade_in=500ms fade_out=1s
+01:30.000  music       ./audio/background.mp3   vol=0.08
+
+# ── Clip trimming example: skip first 5s, stop at 02:50 ─────────
+02:20.000  sfx         ./audio/applause.mp3     vol=0.6  trim_start=5s end=02:28.000
+
+# ── Outro ───────────────────────────────────────────────────────
+03:00.000  outro       ./audio/outro.mp3        vol=1.0  fade_in=1s
+03:00.000  music       ./audio/background.mp3   vol=0.3  fade_in=2s fade_out=5s

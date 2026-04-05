@@ -1,0 +1,4 @@
+# test.mix — quick test with real files
+00:00.000  music    /home/jourdelune/Bureau/dev/maps/test/audio.mp3          vol=0.3  fade_in=2s  end=00:20.000
+00:00.000  track1   /home/jourdelune/Bureau/dev/maps/test/audio.mp3          vol=1.0  trim_start=5s end=00:10.000
+00:10.000  track2   "/home/jourdelune/Bureau/dev/maps/test/Out Of Love_spotdown.org.mp3"  vol=0.8  fade_out=3s end=00:20.000

@@ -10,6 +10,7 @@ from rich.table import Table
 
 from .display import print_events_table, render_timeline
 from .engine import render
+from .media import load_audio_segment
 from .models import ms_to_str
 from .parser import parse_mix_file
 
@@ -19,10 +20,10 @@ app = typer.Typer(
         "Podcast mixer — compile a [bold].mix[/bold] file into a single audio file.\n\n"
         "[dim]Commands:[/dim]\n"
         "  [cyan]render[/cyan]   Compile a .mix file → audio\n"
-        "  [cyan]get[/cyan]      Inspect one or more audio files\n\n"
+        "  [cyan]get[/cyan]      Inspect one or more audio/video files\n\n"
         "[dim]Quick start:[/dim]\n"
         "  dsl-audio render podcast.mix -o output.mp3\n"
-        "  dsl-audio get intro.mp3 background.mp3"
+        "  dsl-audio get intro.mp3 background.mp3 intro.mp4"
     ),
     rich_markup_mode="rich",
     add_completion=False,
@@ -110,6 +111,7 @@ def cmd_render(
     \b
     Multiple events at the same TIMESTAMP are overlaid (superimposed).
     Filepaths with spaces must be quoted: "./my file.mp3"
+    Video inputs (ex: .mp4) are supported and their audio track is extracted automatically.
     """
     console.print(f"\n[bold cyan]dsl-audio render[/bold cyan] — [dim]{mix_file}[/dim]\n")
 
@@ -170,18 +172,16 @@ def cmd_render(
 def cmd_get(
     audio_files: List[Path] = typer.Argument(
         ...,
-        help="One or more audio files to inspect.",
+        help="One or more audio/video files to inspect.",
     ),
 ) -> None:
-    """Inspect one or more audio files and display their metadata.
+    """Inspect one or more audio/video files and display their metadata.
 
     \b
     EXAMPLE
         dsl-audio get intro.mp3
         dsl-audio get intro.mp3 background.mp3 voice.wav
     """
-    from pydub import AudioSegment
-
     console.print()
 
     table = Table(title="Audio File Info", show_lines=True)
@@ -201,7 +201,7 @@ def cmd_get(
             continue
 
         try:
-            seg = AudioSegment.from_file(str(path))
+            seg = load_audio_segment(path)
         except Exception as exc:
             errors.append((path.name, str(exc)))
             continue
@@ -248,13 +248,11 @@ def cmd_get(
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _show_timeline_with_load(events, width: Optional[int]) -> None:
-    from pydub import AudioSegment
-
     durations: dict[int, int] = {}
     with console.status("[dim]Loading audio files for timeline preview…[/dim]"):
         for i, event in enumerate(events):
             try:
-                seg = AudioSegment.from_file(event.filepath)
+                seg = load_audio_segment(event.filepath)
                 if event.trim_start_ms > 0:
                     seg = seg[event.trim_start_ms :]
                 if event.trim_end_ms is not None and event.trim_end_ms > 0:

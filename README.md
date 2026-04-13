@@ -37,7 +37,7 @@ TIMESTAMP  TRACK_NAME  FILEPATH  [OPTIONS...]  [# comment]
 
 - **TIMESTAMP** — when the clip starts on the timeline
 - **TRACK_NAME** — an identifier (used in the timeline display)
-- **FILEPATH** — path to the audio file, relative to the `.mix` file; quote paths that contain spaces
+- **FILEPATH** — path to an audio file or a video file (`.mp4`, etc.); for video sources, the audio track is extracted automatically; quote paths that contain spaces
 - **OPTIONS** — zero or more `key=value` pairs or boolean flags
 
 Lines starting with `#` are comments. Multiple events at the **same timestamp** are overlaid (superimposed).
@@ -205,10 +205,10 @@ dsl-audio render MIXFILE [OPTIONS]
 dsl-audio get FILE [FILE ...]
 ```
 
-Displays duration, format, channels, sample rate, bit depth, and file size for each audio file.
+Displays duration, format, channels, sample rate, bit depth, and file size for each audio/video file.
 
 ```bash
-dsl-audio get intro.mp3 background.mp3 voice.wav
+dsl-audio get intro.mp3 background.mp3 voice.wav intro.mp4
 ```
 
 ---

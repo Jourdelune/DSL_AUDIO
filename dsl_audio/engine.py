@@ -22,6 +22,7 @@ from pydub import AudioSegment
 from pydub.effects import compress_dynamic_range, high_pass_filter, low_pass_filter, normalize
 from pydub.silence import detect_leading_silence
 
+from .media import load_audio_segment
 from .models import TrackEvent
 
 
@@ -29,7 +30,7 @@ from .models import TrackEvent
 
 def _apply_event(event: TrackEvent) -> AudioSegment:
     """Load a file and run the full effect chain for one TrackEvent."""
-    seg = AudioSegment.from_file(event.filepath)
+    seg = load_audio_segment(event.filepath)
 
     # 1. Clip boundaries
     if event.trim_start_ms > 0:

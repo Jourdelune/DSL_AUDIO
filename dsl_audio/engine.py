@@ -27,6 +27,9 @@ from pydub.silence import detect_leading_silence
 from .media import load_audio_segment
 from .models import TrackEvent
 
+MAX_FFMPEG_AMIX_INPUTS = 1024
+MAX_FFMPEG_ADELAY_MS = 90_000_000  # ffmpeg adelay practical limit (~25h)
+
 
 # ── Per-clip processing ───────────────────────────────────────────────────────
 
@@ -162,6 +165,8 @@ def render(
 
     Returns:
         (final_segment, durations) where durations maps event index → clip duration ms.
+        If load_result=False, final_segment is AudioSegment.empty() to avoid loading
+        potentially very large output files in memory.
     """
     if not events:
         raise ValueError("No events to render")
@@ -197,9 +202,23 @@ def render(
 
 
 def _mix_with_ffmpeg(prepared: List[Tuple[TrackEvent, Path]], output_path: Path) -> None:
-    """Mix pre-processed clips with ffmpeg using timestamp delays."""
+    """Mix pre-processed clips with ffmpeg using timestamp delays.
+
+    Args:
+        prepared: List of (event, temporary_wav_path) pairs.
+        output_path: Final output media path.
+
+    Raises:
+        ValueError: If no clips are provided or ffmpeg filter limits are exceeded.
+        RuntimeError: If ffmpeg is unavailable or the mix/export command fails.
+    """
     if not prepared:
         raise ValueError("No prepared clips to mix")
+    if len(prepared) > MAX_FFMPEG_AMIX_INPUTS:
+        raise ValueError(
+            f"Too many clips for ffmpeg amix (max {MAX_FFMPEG_AMIX_INPUTS} inputs). "
+            "Please split your mix into smaller chunks."
+        )
 
     cmd: List[str] = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"]
     for _, clip_path in prepared:
@@ -208,11 +227,18 @@ def _mix_with_ffmpeg(prepared: List[Tuple[TrackEvent, Path]], output_path: Path)
     delayed_labels: List[str] = []
     filter_parts: List[str] = []
     for i, (event, _) in enumerate(prepared):
+        if event.timestamp_ms > MAX_FFMPEG_ADELAY_MS:
+            raise ValueError(
+                f"Event at index {i} starts too late for ffmpeg adelay: "
+                f"{event.timestamp_ms}ms (max {MAX_FFMPEG_ADELAY_MS}ms / 25h)."
+            )
         out_label = f"a{i}"
         filter_parts.append(f"[{i}:a]adelay={event.timestamp_ms}:all=1[{out_label}]")
         delayed_labels.append(f"[{out_label}]")
 
     filter_parts.append(
+        # normalize=0 keeps source levels unchanged; dropout_transition=0 avoids
+        # extra crossfade-like smoothing when inputs start/stop over time.
         f"{''.join(delayed_labels)}amix=inputs={len(delayed_labels)}:normalize=0:dropout_transition=0[mix]"
     )
     filter_complex = ";".join(filter_parts)

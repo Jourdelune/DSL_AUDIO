@@ -152,7 +152,7 @@ def cmd_render(
             progress.update(task, completed=current, description=desc)
 
         try:
-            _, durations = render(events, output, progress_callback=on_progress)
+            _, durations = render(events, output, progress_callback=on_progress, load_result=False)
         except FileNotFoundError as exc:
             console.print(f"\n[bold red]Audio file not found:[/bold red] {exc}")
             raise typer.Exit(1)

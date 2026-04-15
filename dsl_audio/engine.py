@@ -15,6 +15,8 @@ Signal processing chain applied to every clip (in order):
    12. Fades            (fade_in / fade_out)  ← always last
 """
 import math
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -148,6 +150,7 @@ def render(
     events: List[TrackEvent],
     output_path: str | Path,
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    load_result: bool = True,
 ) -> Tuple[AudioSegment, Dict[int, int]]:
     """Render all TrackEvents into a single mixed audio file.
 
@@ -155,6 +158,7 @@ def render(
         events:            Sorted list of TrackEvents from the parser.
         output_path:       Destination file.  Format inferred from extension.
         progress_callback: Optional (current, total, description) callback.
+        load_result:       If True, reload output file and return it as AudioSegment.
 
     Returns:
         (final_segment, durations) where durations maps event index → clip duration ms.
@@ -163,28 +167,62 @@ def render(
         raise ValueError("No events to render")
 
     output_path = Path(output_path)
-    loaded: Dict[int, Tuple[TrackEvent, AudioSegment]] = {}
     durations: Dict[int, int] = {}
+    total_steps = len(events) + 1
 
-    for i, event in enumerate(events):
+    with tempfile.TemporaryDirectory(prefix="dsl-audio-") as temp_dir_str:
+        temp_dir = Path(temp_dir_str)
+        prepared: List[Tuple[TrackEvent, Path]] = []
+
+        for i, event in enumerate(events):
+            if progress_callback:
+                progress_callback(i, total_steps, f"Loading  {Path(event.filepath).name}")
+            seg = _apply_event(event)
+            durations[i] = len(seg)
+
+            clip_path = temp_dir / f"clip_{i:05d}.wav"
+            seg.export(str(clip_path), format="wav")
+            prepared.append((event, clip_path))
+
         if progress_callback:
-            progress_callback(i, len(events), f"Loading  {Path(event.filepath).name}")
-        seg = _apply_event(event)
-        loaded[i] = (event, seg)
-        durations[i] = len(seg)
-
-    total_ms = max(event.timestamp_ms + durations[i] for i, (event, _) in loaded.items())
-    result = AudioSegment.silent(duration=total_ms)
-
-    for i, (event, seg) in loaded.items():
-        if progress_callback:
-            progress_callback(i, len(events), f"Mixing   {event.track_name}")
-        result = result.overlay(seg, position=event.timestamp_ms)
+            progress_callback(len(events), total_steps, "Mixing / Exporting")
+        _mix_with_ffmpeg(prepared, output_path)
 
     if progress_callback:
-        progress_callback(len(events), len(events), "Exporting")
+        progress_callback(total_steps, total_steps, "Done")
 
-    fmt = output_path.suffix.lstrip(".").lower() or "mp3"
-    result.export(str(output_path), format=fmt)
+    if load_result:
+        return load_audio_segment(output_path), durations
+    return AudioSegment.empty(), durations
 
-    return result, durations
+
+def _mix_with_ffmpeg(prepared: List[Tuple[TrackEvent, Path]], output_path: Path) -> None:
+    """Mix pre-processed clips with ffmpeg using timestamp delays."""
+    if not prepared:
+        raise ValueError("No prepared clips to mix")
+
+    cmd: List[str] = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"]
+    for _, clip_path in prepared:
+        cmd.extend(["-i", str(clip_path)])
+
+    delayed_labels: List[str] = []
+    filter_parts: List[str] = []
+    for i, (event, _) in enumerate(prepared):
+        out_label = f"a{i}"
+        filter_parts.append(f"[{i}:a]adelay={event.timestamp_ms}:all=1[{out_label}]")
+        delayed_labels.append(f"[{out_label}]")
+
+    filter_parts.append(
+        f"{''.join(delayed_labels)}amix=inputs={len(delayed_labels)}:normalize=0:dropout_transition=0[mix]"
+    )
+    filter_complex = ";".join(filter_parts)
+
+    cmd.extend(["-filter_complex", filter_complex, "-map", "[mix]", str(output_path)])
+
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+    except FileNotFoundError as exc:
+        raise RuntimeError("ffmpeg is required but was not found in PATH.") from exc
+    except subprocess.CalledProcessError as exc:
+        details = exc.stderr.strip() if exc.stderr else str(exc)
+        raise RuntimeError(f"ffmpeg mix/export failed: {details}") from exc

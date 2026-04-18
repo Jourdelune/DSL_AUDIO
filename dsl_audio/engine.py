@@ -8,8 +8,8 @@ Signal processing chain applied to every clip (in order):
     5. High-pass filter (highpass)
     6. Low-pass filter  (lowpass)
     7. Compression      (compress)
-    8. Volume gain      (vol)
-    9. Normalization    (normalize / normalize_target_dbfs)
+    8. Normalization    (normalize / normalize_target_dbfs)
+    9. Volume gain      (vol)
    10. Stereo pan       (pan)
    11. Reverse          (reverse)
    12. Fades            (fade_in / fade_out)  ← always last
@@ -81,12 +81,7 @@ def _apply_event(event: TrackEvent) -> AudioSegment:
             release=event.compress_release_ms,
         )
 
-    # 8. Volume gain
-    if event.vol != 1.0:
-        db_change = -120.0 if event.vol <= 0 else 20 * math.log10(event.vol)
-        seg = seg + db_change
-
-    # 9. Normalization
+    # 8. Normalization
     if event.normalize:
         if event.normalize_target_dbfs is None:
             # Peak normalization (headroom = 0.1 dB below 0 dBFS)
@@ -94,6 +89,11 @@ def _apply_event(event: TrackEvent) -> AudioSegment:
         else:
             # RMS normalization to target dBFS
             seg = _rms_normalize(seg, event.normalize_target_dbfs)
+
+    # 9. Volume gain
+    if event.vol != 1.0:
+        db_change = -120.0 if event.vol <= 0 else 20 * math.log10(event.vol)
+        seg = seg + db_change
 
     # 10. Stereo pan
     if event.pan is not None:

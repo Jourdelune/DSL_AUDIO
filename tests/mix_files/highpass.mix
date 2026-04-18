@@ -1,0 +1,2 @@
+# High-pass at 2 kHz — removes low rumble
+00:00.000 track /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 highpass=2000

@@ -1,0 +1,2 @@
+# Background music bed
+00:00.000 music /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 normalize=-18 vol=0.3 fade_in=3s fade_out=3s

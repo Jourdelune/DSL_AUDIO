@@ -1,0 +1,3 @@
+# Two tracks: second one starts 5 s later
+00:00.000 music  /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 vol=0.4
+00:05.000 voice  /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 vol=0.7

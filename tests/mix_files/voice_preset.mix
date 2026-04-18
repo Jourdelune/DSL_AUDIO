@@ -1,0 +1,2 @@
+# Broadcast-ready voice preset
+00:00.000 voice /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 mono strip_silence highpass=100 compress normalize=-16

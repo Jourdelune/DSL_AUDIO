@@ -1,0 +1,11 @@
+# ── Full podcast mix ──────────────────────────────────────────────
+# Jingle (0–10 s)
+00:00.000 jingle  /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 vol=0.9 trim_end=10s fade_out=2s
+# Background music starts under jingle
+00:03.000 music   /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 vol=0.15 fade_in=3s
+# Voice enters after jingle
+00:08.000 voice   /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 vol=1.0 fade_in=500ms highpass=100 compress
+# Second voice segment with pan
+00:12.000 guest   /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 vol=0.9 pan=0.2 highpass=80 compress normalize=-16
+# Outro fades everything out
+00:18.000 outro   /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 vol=0.8 trim_end=5s fade_in=1s fade_out=3s

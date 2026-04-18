@@ -1,0 +1,2 @@
+# Hard compression: threshold -30 dBFS, ratio 8:1
+00:00.000 track /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 compress=-30:8:10:100

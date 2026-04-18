@@ -1,0 +1,2 @@
+# Symmetric 2-second fades
+00:00.000 track /home/jourdelune/Bureau/dev/DSL_AUDIO/test.mp3 fade_in=2s fade_out=2s

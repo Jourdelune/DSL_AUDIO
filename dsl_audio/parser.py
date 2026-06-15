@@ -19,11 +19,11 @@ def parse_mix_file(filepath: str | Path) -> List[TrackEvent]:
 
     Key=value options:
         vol=0.8               Volume multiplier (default 1.0)
-        fade_in=2s            Fade-in duration  (e.g. 2s, 500ms)
-        fade_out=3s           Fade-out duration
-        trim_start=5s         Skip start of clip
-        trim_end=10s          Cut end of clip
-        end=01:30.000         Force-stop at absolute timeline position
+        fade_in=00:02         Fade-in duration   (MM:SS)
+        fade_out=00:03        Fade-out duration  (MM:SS)
+        trim_start=00:05      Skip start of clip (MM:SS)
+        trim_end=00:10        Cut end of clip    (MM:SS)
+        end=01:30             Force-stop at absolute timeline position (MM:SS)
         normalize=-18         RMS-normalize to target dBFS (omit value = peak)
         compress=-20:4:5:50   Compress: threshold:ratio:attack_ms:release_ms
         highpass=80           High-pass filter cutoff in Hz

@@ -62,11 +62,11 @@ Lines starting with `#` are comments. Multiple events at the **same timestamp** 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `vol=0.8` | float | `1.0` | Volume multiplier. `0.5` = −6 dB, `2.0` = +6 dB |
-| `fade_in=2s` | duration | `0` | Fade-in length. Accepts `2s`, `500ms` |
-| `fade_out=3s` | duration | `0` | Fade-out length |
-| `trim_start=5s` | duration | `0` | Skip the first N seconds of the clip |
-| `trim_end=10s` | duration | `0` | Cut the last N seconds of the clip |
-| `end=01:30.000` | timestamp | — | Force-stop at this absolute timeline position |
+| `fade_in=00:02` | duration | `0` | Fade-in length in `MM:SS`. Legacy `2s`/`500ms` still accepted |
+| `fade_out=00:03` | duration | `0` | Fade-out length in `MM:SS` |
+| `trim_start=01:45` | duration | `0` | Skip the start of the clip, in `MM:SS` |
+| `trim_end=00:10` | duration | `0` | Cut the end of the clip, in `MM:SS` |
+| `end=01:30` | timestamp | — | Force-stop at this absolute timeline position (`MM:SS`) |
 
 ### Effect options
 

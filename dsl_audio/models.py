@@ -16,8 +16,15 @@ def parse_time(s: str) -> int:
 
 
 def parse_duration(s: str) -> int:
-    """Parse duration string ('2s', '500ms', '1.5s') to milliseconds."""
+    """Parse a duration to milliseconds.
+
+    Accepts the MM:SS clock format (e.g. '01:45' = 1 min 45 s, '00:02' = 2 s) so
+    every time value in a .mix file can use the same MM:SS convention. The legacy
+    suffix forms ('2s', '500ms', '1.5s') are still accepted for compatibility.
+    """
     s = s.strip()
+    if ":" in s:
+        return parse_time(s)
     if s.endswith("ms"):
         return int(float(s[:-2]))
     elif s.endswith("s"):

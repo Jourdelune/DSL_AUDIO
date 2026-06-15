@@ -67,11 +67,11 @@ value      ::= <string>
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `vol` | float | `1.0` | Volume multiplier. Linear: `0.5`=−6 dB, `2.0`=+6 dB |
-| `fade_in` | duration | `0` | Fade-in length. Format: `2s` or `500ms` |
-| `fade_out` | duration | `0` | Fade-out length |
-| `trim_start` | duration | `0` | Skip first N ms/s of the clip |
-| `trim_end` | duration | `0` | Cut last N ms/s of the clip |
-| `end` | timestamp | — | Stop clip at absolute timeline position |
+| `fade_in` | duration | `0` | Fade-in length. `MM:SS` (e.g. `00:02`); legacy `2s`/`500ms` still accepted |
+| `fade_out` | duration | `0` | Fade-out length. `MM:SS` (e.g. `00:03`) |
+| `trim_start` | duration | `0` | Skip the start of the clip. `MM:SS` (e.g. `01:45`) |
+| `trim_end` | duration | `0` | Cut the end of the clip. `MM:SS` (e.g. `00:10`) |
+| `end` | timestamp | — | Stop clip at absolute timeline position. `MM:SS` |
 | `normalize` | flag | off | Peak-normalize to −0.1 dBFS |
 | `normalize` | float | — | `normalize=-16` → RMS-normalize to target dBFS |
 | `compress` | flag | off | Compress: threshold −20, ratio 4:1, attack 5 ms, release 50 ms |
@@ -155,7 +155,7 @@ normalize=-18  fade_in=2s  fade_out=3s
 
 ```
 # Play a sound effect, skip its first 2 s, stop it after 5 s of playtime
-01:10.000  sfx  applause.mp3  trim_start=2s  end=01:15.000  vol=0.6  fade_in=200ms  fade_out=500ms
+01:10  sfx  applause.mp3  trim_start=00:02  end=01:15  vol=0.6  fade_in=00:00.200  fade_out=00:00.500
 ```
 
 ### Telephone voice effect
